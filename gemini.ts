@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// 1. 친구 방식대로 apiKey 설정
+// 1. 친구 방식대로 apiKey 설정 (Vercel의 GEMINI_API_KEY와 연결됨)
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 export interface SafetyAnalysis {
@@ -25,17 +25,17 @@ export async function analyzeOSCSafety(params: {
   environment: string;
 }): Promise<SafetyAnalysis> {
   try {
-    const prompt = `건설 안전 전문가로서 다음 조건을 분석해: 
-    공종: ${params.projectType}, 장비: ${params.equipment}, 풍속: ${params.windSpeed}, 환경: ${params.environment}`;
+    const prompt = `건설 안전 전문가로서 다음 조건을 분석해줘: 
+    공종: ${params.projectType}, 장비: ${params.equipment}, 풍속: ${params.windSpeed}m/s, 환경: ${params.environment}`;
 
-    // 2. ai.models.generateContent 형식을 유지하면서 SchemaType 대신 'Type' 사용
+    // 2. responseSchema 내부의 SchemaType을 모두 Type으로 변경
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT, // SchemaType -> Type 으로 수정
+          type: Type.OBJECT, 
           properties: {
             risks: {
               type: Type.OBJECT,
@@ -70,7 +70,7 @@ export async function analyzeOSCSafety(params: {
     });
 
     if (!response.text) {
-      throw new Error("AI 응답을 생성하지 못했습니다.");
+      throw new Error("AI 응답 데이터가 없습니다.");
     }
 
     return JSON.parse(response.text) as SafetyAnalysis;
